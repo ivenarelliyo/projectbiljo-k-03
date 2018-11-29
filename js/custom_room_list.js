@@ -438,6 +438,31 @@ function addExpense(){
 }
 	
 $(document).ready(function() {
+	
+	//pindah tab dari url location
+	if (window.location.href.split('#')[1]=="roomi"){
+		$("#tenanti").removeClass("in active")
+		$("#roomi").addClass("in active")
+		$("#expensei").removeClass("in active")
+		$("#tabroomi").addClass("active")
+		$("#tabexpensei").removeClass("active")
+		$("#tabtenanti").removeClass("active")
+	} else if (window.location.href.split('#')[1]=="tenanti"){
+		$("#tenanti").addClass("in active")
+		$("#roomi").removeClass("in active")
+		$("#expensei").removeClass("in active")
+		$("#tabroomi").removeClass("active")
+		$("#tabexpensei").removeClass("active")
+		$("#tabtenanti").addClass("active")
+	} else if (window.location.href.split('#')[1]=="expensei") {
+		$("#tenanti").removeClass("in active")
+		$("#roomi").removeClass("in active")
+		$("#expensei").addClass("in active")
+		$("#tabroomi").removeClass("active")
+		$("#tabexpensei").addClass("active")
+		$("#tabtenanti").removeClass("active")
+	}
+	
 	//expense add button listener
 	$("#expenseButton").on('click', function() {
 		$("#modalExpense").modal();
@@ -883,7 +908,7 @@ $(document).ready(function() {
 		}
 		
 	})
-	
+		
 	//stop loading ketika data sudah di ambil dari firebase
 	dbRefBuild.once('value', function(snapshot) {
 	//stop loading icon

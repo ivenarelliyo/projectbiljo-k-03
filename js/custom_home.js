@@ -2,13 +2,18 @@
 var table1 = $('#booking-list').DataTable({
 	"aLengthMenu": [[3, 6, -1], [3, 6, "All"]],
 	"iDisplayLength": 3,
-	"sPaginationType": "full_numbers",
-	"order": [[ 0, "asc" ]],
+	"order": [],
 	"columnDefs": [
 	{
+		targets: -1,
+		orderable:false
+	},
+	{
 		targets: 0,
-		width: "11%"
-	}]
+		width: "10%",
+		orderable:false
+	}
+	]
 })	
 
 function removeOptions(selectbox) {
@@ -116,29 +121,178 @@ function addPayment() {
 }
 
 //approve booking in table
-function approveBooking(idBook){
-	$('#approve_'+idBook).css("background-color","#c8bca6");
-	$('#approve_'+idBook).prop('disabled', true);
+function approveBooking(refNumber){
+	$('#approveM').html("Are you sure to approve "+refNumber+" ?");
+	$('#approveM').val(refNumber);
+	$("#approveModal").modal();
 }
 
 //delete booking in table
-function deleteBooking(idBook){
-	var row = table1.row('#'+idBook);
-	row.remove();
-	table1.draw(false);
+function deleteBooking(refNumber){
+	$('#approveD').html("Are you sure delete "+refNumber+" ?");
+	$('#approveD').val(refNumber);
+	$("#rApproveModal").modal();
 }
+
+//sort list by status approve or booking
+function sortByStatOccupy(listApproveT){
+	newArray=[]
+	
+	//jika statusnya booking
+	for (i=0;i<listApproveT.length;i++) {
+		if (listApproveT[i].statOccupy=="booking"){
+			newObj = {
+				"statOccupy":listApproveT[i].statOccupy,
+				"refNum":listApproveT[i].refNum,
+				"content":listApproveT[i].content,
+				"tenant_id":listApproveT[i].tenant_id
+			}
+			newArray.push(newObj);
+		}
+	}
+		
+	//jika statusnya approved
+	for (i=0;i<listApproveT.length;i++) {
+		if (listApproveT[i].statOccupy=="approved"){
+			newObj = {
+				"statOccupy":listApproveT[i].statOccupy,
+				"refNum":listApproveT[i].refNum,
+				"content":listApproveT[i].content,
+				"tenant_id":listApproveT[i].tenant_id
+			}
+			newArray.push(newObj);
+		}
+	}
+	return newArray
+}
+
 $(document).ready(function() {
+	//BOOKING LIST
+	//get data from database
+	var trRef = firebase.database().ref().child("tenant-room");
+	var a=1;
+	var listApproveT=[];
+	trRef.on('child_added', function(snapshot) {
+		var tenantID = snapshot.key;
+		trRef1=trRef.child(snapshot.key);
+		trRef1.on('child_added', function(snapshot) {
+			//get starting date , building address , status occupy , ref id
+			var statingDate=snapshot.child("start_date").val();
+			var propAddr=snapshot.child("prop_addr").val();
+			var statOccupy=snapshot.child("stat_occupy").val();
+			var refN=snapshot.child("ref_number").val().split(" ");
+			var refNumber=refN[0]+refN[1]+refN[2];
+			
+			var tenantRef = firebase.database().ref().child("tenant/"+tenantID);
+			var tenantName;
+			tenantRef.once('value', function(snapshot) {
+				table1.clear();
+				// get name from database
+				tenantName=snapshot.child("full_name").val();
+				// jika status = approved
+				if (statOccupy=="approved"){
+					// untuk sort , datanya dimasukan ke list
+					newObj = {
+						"statOccupy":"approved",
+						"refNum":refNumber,
+						"content":[a,tenantName,statingDate,propAddr,"<button id='approve_booking"+refNumber+"' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking"+refNumber+"') style='background-color:#c8bca6' disabled ><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking"+refNumber+"')><i class='fa fa-times'></i></button>"],
+						"tenant_id":tenantID
+					}
+					listApproveT.push(newObj);
+				}
+				//jika status = booking
+				if(statOccupy=="booking") {
+					// untuk sort , datanya dimasukan ke list
+					newObj = {
+						"statOccupy":"booking",
+						"refNum":refNumber,
+						"content":[a,tenantName,statingDate,propAddr,"<button id='approve_booking"+refNumber+"' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking"+refNumber+"')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking"+refNumber+"')><i class='fa fa-times'></i></button>"],
+						"tenant_id":tenantID
+					}
+					listApproveT.push(newObj);
+				}
+				listApproveT = sortByStatOccupy(listApproveT);
+				//add hasil sort ke datatables
+				for (i=0;i<listApproveT.length;i++) {
+					table1.row.add(listApproveT[i].content).node().id = 'booking'+listApproveT[i].refNum;
+				}
+				table1.draw();
+				a++
+			});
+		});
+		
+		trRef1.on('child_changed', function(snapshot) {
+			//get starting date , building address , status occupy, ref id
+			var statingDate=snapshot.child("start_date").val();
+			var propAddr=snapshot.child("prop_addr").val();
+			var statOccupy=snapshot.child("stat_occupy").val();
+			var refN=snapshot.child("ref_number").val().split(" ");
+			var refNumber=refN[0]+refN[1]+refN[2];
+			var tenantRef = firebase.database().ref().child("tenant/"+tenantID);
+			var tenantName;
+			tenantRef.once('value', function(snapshot) {
+				table1.clear();
+				// get name from database
+				tenantName=snapshot.child("full_name").val();
+				// remove row changed
+				var row = table1.row('#booking'+refNumber);
+				row.remove();
+				// update occupy pada list
+				
+				// jika status = approved
+				if (statOccupy=="approved"){
+					for (i=0;i<listApproveT.length;i++){
+						if(listApproveT[i].refNum==refNumber){
+							newObj = {
+								"statOccupy":statOccupy,
+								"refNum":refNumber,
+								"content":[listApproveT[i].content[0],tenantName,statingDate,propAddr,"<button id='approve_booking"+refNumber+"' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking"+refNumber+"') style='background-color:#c8bca6' disabled ><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking"+refNumber+"')><i class='fa fa-times'></i></button>"],
+								"tenant_id":tenantID
+							}
+							listApproveT[i]=newObj;
+							break
+						}
+					}
+				}
+				//jika status = booking
+				if(statOccupy=="booking") {
+					for (i=0;i<listApproveT.length;i++){
+						if(listApproveT[i].refNum==refNumber){
+							newObj = {
+								"statOccupy":statOccupy,
+								"refNum":refNumber,
+								"content":[listApproveT[i].content[0],tenantName,statingDate,propAddr,"<button id='approve_booking"+refNumber+"' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking"+refNumber+"')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking"+refNumber+"')><i class='fa fa-times'></i></button>"],
+								"tenant_id":tenantID
+							}
+							listApproveT[i]=newObj;
+							break
+						}
+					}
+				}
+				//sorting
+				listApproveT = sortByStatOccupy(listApproveT);
+				//add hasil sort ke datatables
+				for (i=0;i<listApproveT.length;i++) {
+					table1.row.add(listApproveT[i].content).node().id = 'booking'+listApproveT[i].refNum;
+				}
+				table1.draw();
+				
+			});
+		});
+		
+		trRef1.on('child_removed', function(snapshot) {
+			//get ref ID
+			var refN=snapshot.child("ref_number").val().split(" ");
+			var refNumber=refN[0]+refN[1]+refN[2];
+			// remove row changed
+			var row = table1.row('#booking'+refNumber);
+			row.remove();
+		});
+	})
+
 	
-	//Booking list
-	table1.row.add(["0001","Jeremia Raymond","09/07/2018","Jl. Dipatiukur","<button id='approve_booking1' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking1')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking1')><i class='fa fa-times'></i></button>"]).node().id = 'booking1';
-	table1.row.add(["0002","Kevin Owen","12/17/2018","Jl. Dipatiukur1","<button id='approve_booking2' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking2')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking2')><i class='fa fa-times'></i></button>"]).node().id = 'booking2';
-	table1.row.add(["0006","Wendy Wendy","10/09/2018","Jl. Dipatiukur2","<button id='approve_booking3' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking3')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking3')><i class='fa fa-times'></i></button>"]).node().id = 'booking3';
-	table1.row.add(["0008","Wendy 1","10/09/2018","Jl. Dipatiukur2","<button id='approve_booking4' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking4')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking4')><i class='fa fa-times'></i></button>"]).node().id = 'booking4';
-	table1.row.add(["0009","Wendy 2","10/09/2018","Jl. Dipatiukur2","<button id='approve_booking5' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking5')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking5')><i class='fa fa-times'></i></button>"]).node().id = 'booking5';
-	table1.row.add(["0010","Wendy 3","10/09/2018","Jl. Dipatiukur2","<button id='approve_booking6' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking6')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking6')><i class='fa fa-times'></i></button>"]).node().id = 'booking6';
-	table1.row.add(["0012","Wendy 5","10/09/2018","Jl. Dipatiukur2","<button id='approve_booking7' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking7')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking7')><i class='fa fa-times'></i></button>"]).node().id = 'booking7';
 	
-	table1.draw();
+	
 	
 	//key list
 	var table6 = $('#keyC-list').DataTable({
@@ -221,57 +375,57 @@ $(document).ready(function() {
 	var tenantNames = [
 		{
 			label: "Bea Curran (101 010 100)",
-			tenantid: "t_1",
+			tenantid: "t_1d",
 			refnumber: "101010100"
 		},
 		{
 			label: "Kevin Owen (101 010 300)",
-			tenantid: "t_2",
+			tenantid: "t_2d",
 			refnumber: "101010300"
 		},
 		{
 			label: "Briana Holloway (101 010 200)",
-			tenantid: "t_3",
+			tenantid: "t_3d",
 			refnumber: "101010200"
 		},
 		{
 			label: "Zakary Neville (101 010 400)",
-			tenantid: "t_4",
+			tenantid: "t_4d",
 			refnumber: "101010400"
 		},
 		{
 			label: "Aleksandra Hyde (101 010 500)",
-			tenantid: "t_5",
+			tenantid: "t_5d",
 			refnumber: "101010500"
 		},
 		{
 			label: "Amari O'Reilly (101 020 100)",
-			tenantid: "t_6",
+			tenantid: "t_6d",
 			refnumber: "101020100"
 		},
 		{
 			label: "Jan Garrison (101 020 300)",
-			tenantid: "t_7",
+			tenantid: "t_7d",
 			refnumber: "101020300"
 		},
 		{
 			label: "Kevin Owen (102 010 200)",
-			tenantid: "t_8",
+			tenantid: "t_8d",
 			refnumber: "102010200"
 		},
 		{
 			label: "Pamela Daugherty (102 010 100)",
-			tenantid: "t_9",
+			tenantid: "t_9d",
 			refnumber: "102010100"
 		},
 		{
 			label: "Vernon Kirkland (101 010 101)",
-			tenantid: "t_10",
+			tenantid: "t_10d",
 			refnumber: "101010101"
 		},
 		{
 			label: "Jacob Connolly (102 020 100)",
-			tenantid: "t_11",
+			tenantid: "t_11d",
 			refnumber: "102020100"
 		}
 	];
@@ -316,6 +470,37 @@ $(document).ready(function() {
 	$('#paymentDatePicker').datepicker({
 		format: "dd-M-yy"
 	})
+	
+	//approve modal add listener
+	$("#confirmApprove").click(function() {
+		var BrefNumber = $("#approveM").val();
+		// get Ref Number
+		var refNumber = BrefNumber.split("booking")[1];
+		// get tenant ID
+		var tenantID;
+		for (i=0;i<listApproveT.length;i++){
+			if(listApproveT[i].refNum==refNumber){
+				tenantID = listApproveT[i].tenant_id; 
+				break
+			}
+		}
+		//get building id
+		var buildingID=refNumber.substring(0,refNumber.length-2);
+		//update data booking to approved
+		var trRef = firebase.database().ref().child("tenant-room/"+tenantID+"/"+buildingID+"/");
+		trRef.update({
+			'stat_occupy':'approved'
+		});
+	})
+	
+	//remove approve modal add listener
+	$("#removeApprove").click(function() {
+		var refNumber = $("#approveD").val();
+		var row = table1.row('#'+refNumber);
+		row.remove();
+		table1.draw(false);
+	})
+	
 	//invoice add button listener
 	$("#invoiceb").on('click', function() {
 		$("#addInvoiceModal").modal();

@@ -76,7 +76,8 @@ $(document).ready(function() {
 		"columnDefs": [
 		{
 			targets: 0,
-			width: "15%"
+			width: "11%",
+			
 		},
 		{ 
 			targets: -1,
@@ -100,7 +101,7 @@ $(document).ready(function() {
 				var address2 = snapshot.child("address_city").val();
 				var address3 = snapshot.child("address_province").val();
 				var address4 = snapshot.child("address_zipcode").val();
-				table.row.add(["<a href='room_list.html?id="+builder[1]+"'>"+builder[1]+"</a>",address1,address2,address3,address4,"<button id='summary' class='btn btn-xs btn-success' title='Summary Building' onClick=window.location='room_list.html?id="+builder[1]+"#tenanti'><i class='fa fa-bar-chart'></i></button>  <button id='expense' class='btn btn-xs btn-primary' title='Add Expense' onClick='expense("+builder[1]+")'><i class='fa fa-money'></i></button> <button id='addRoom' class='btn btn-xs btn-success' title='Add Room' onClick=window.location='room_add.html?id=1"+builder[1]+"'><i class='fa fa-plus'></i></button> <button id='editbutt' class='btn btn-xs btn-warning' title='Edit Building' onclick='editBuild("+builder[1]+")'><i class='fa fa-pencil'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Remove Building' onclick='removeBuild("+builder[1]+")'><i class='fa fa-times'></i></button>"]).node().id = 'build'+builder[1];
+				table.row.add(["<a href='room_list.html?id="+builder[1]+"'><center>"+builder[1]+"</center></a>",address1,address2,address3,address4,"<button id='summary' class='btn btn-xs btn-success' title='Summary Building' onClick=window.location='room_list.html?id="+builder[1]+"#tenanti'><i class='fa fa-bar-chart'></i></button>  <button id='expense' class='btn btn-xs btn-primary' title='Add Expense' onClick='expense("+builder[1]+")'><i class='fa fa-money'></i></button> <button id='addRoom' class='btn btn-xs btn-success' title='Add Room' onClick=window.location='room_add.html?id=1"+builder[1]+"'><i class='fa fa-plus'></i></button> <button id='editbutt' class='btn btn-xs btn-warning' title='Edit Building' onclick='editBuild("+builder[1]+")'><i class='fa fa-pencil'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Remove Building' onclick='removeBuild("+builder[1]+")'><i class='fa fa-times'></i></button>"]).node().id = 'build'+builder[1];
 				table.draw();
 				//stop loading icon
 				$("#cover-spin").fadeOut(250, function() {
@@ -116,7 +117,7 @@ $(document).ready(function() {
 				var address2 = snapshot.child("address_city").val();
 				var address3 = snapshot.child("address_province").val();
 				var address4 = snapshot.child("address_zipcode").val();
-				table.row.add(["<a href='room_list.html?id="+builder[1]+"'>"+builder[1]+"</a>",address1,address2,address3,address4,"<button id='summary' class='btn btn-xs btn-success' title='Summary Building' onClick=window.location='room_list.html?id="+builder[1]+"#tenanti'><i class='fa fa-bar-chart'></i></button> <button id='expense' class='btn btn-xs btn-primary' title='Add Expense' onClick='expense("+builder[1]+")'><i class='fa fa-money'></i></button> <button id='addRoom' class='btn btn-xs btn-success' title='Add Room' onClick=window.location='room_add.html?id=1"+builder[1]+"'><i class='fa fa-plus'></i></button> <button id='editbutt' class='btn btn-xs btn-warning' title='Edit Building' onclick='editBuild("+builder[1]+")'><i class='fa fa-pencil'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Remove Building' onclick='removeBuild("+builder[1]+")'><i class='fa fa-times'></i></button>"]).node().id = 'build'+builder[1];
+				table.row.add(["<a href='room_list.html?id="+builder[1]+"'><center>"+builder[1]+"</center></a>",address1,address2,address3,address4,"<button id='summary' class='btn btn-xs btn-success' title='Summary Building' onClick=window.location='room_list.html?id="+builder[1]+"#tenanti'><i class='fa fa-bar-chart'></i></button> <button id='expense' class='btn btn-xs btn-primary' title='Add Expense' onClick='expense("+builder[1]+")'><i class='fa fa-money'></i></button> <button id='addRoom' class='btn btn-xs btn-success' title='Add Room' onClick=window.location='room_add.html?id=1"+builder[1]+"'><i class='fa fa-plus'></i></button> <button id='editbutt' class='btn btn-xs btn-warning' title='Edit Building' onclick='editBuild("+builder[1]+")'><i class='fa fa-pencil'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Remove Building' onclick='removeBuild("+builder[1]+")'><i class='fa fa-times'></i></button>"]).node().id = 'build'+builder[1];
 				table.draw();
 			});
 			//remove row when deleted

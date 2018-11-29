@@ -923,89 +923,183 @@ $(document).ready(function() {
 	var tenantNames = [
 		{
 			label: "Bea Curran",
-			tenantid: "t_1",
+			tenantid: "t_1d",
 			refnumber: "101010100"
 		},
 		{
 			label: "Kevin Owen",
-			tenantid: "t_2",
+			tenantid: "t_2d",
 			refnumber: "101010200"
 		},
 		{
 			label: "Briana Holloway",
-			tenantid: "t_3",
+			tenantid: "t_3d",
 			refnumber: "101010300"
 		},
 		{
 			label: "Zakary Neville",
-			tenantid: "t_4",
+			tenantid: "t_4d",
 			refnumber: "101010400"
 		},
 		{
 			label: "Aleksandra Hyde",
-			tenantid: "t_5",
+			tenantid: "t_5d",
 			refnumber: "101010500"
 		},
 		{
 			label: "Amari O'Reilly",
-			tenantid: "t_6",
+			tenantid: "t_6d",
 			refnumber: "101020100"
 		},
 		{
 			label: "Jan Garrison",
-			tenantid: "t_7",
+			tenantid: "t_7d",
 			refnumber: "101020300"
 		},
 		{
 			label: "Kevin Owen",
-			tenantid: "t_8",
+			tenantid: "t_8d",
 			refnumber: "102010200"
 		},
 		{
 			label: "Pamela Daugherty",
-			tenantid: "t_9",
+			tenantid: "t_9d",
 			refnumber: "102010100"
 		},
 		{
 			label: "Vernon Kirkland",
-			tenantid: "t_10",
+			tenantid: "t_10d",
 			refnumber: "101010101"
 		},
 		{
 			label: "Jacob Connolly",
-			tenantid: "t_11",
+			tenantid: "t_11d",
 			refnumber: "102020100"
 		}
 	];
-	var label= null
-	for (i=0;i<(tenantNames.length);++i){
-		if (tenantNames[i].tenantid==id){
-			label = tenantNames[i].label;
-			var refnumber = tenantNames[i].refnumber;
+	
+	// mengambil data yang approved atau occupy dari firebase ke dalam list
+	var trRef1 = firebase.database().ref().child("tenant-room/"+id);
+	trRef1.on('child_added', function(snapshot) {
+		//get starting date , building address , status occupy , ref id
+		var statingDate=snapshot.child("start_date").val();
+		var propAddr=snapshot.child("prop_addr").val();
+		var statOccupy=snapshot.child("stat_occupy").val();
+		var refN=snapshot.child("ref_number").val().split(" ");
+		var refNumber=refN[0]+refN[1]+refN[2];
+		// mengambil data tenant yang status nya approved atau active
+		if ((statOccupy=="approved") ||(statOccupy=="active")){
+			var tenantRef = firebase.database().ref().child("tenant/"+id);
+			tenantRef.once('value', function(snapshot) {
+				var full_name=snapshot.child("full_name").val();
+				newObj = {
+					"label":full_name,
+					"tenantid":id,
+					"refnumber":refNumber
+				}
+				tenantNames.push(newObj);
+			});
 		}
-		//redirect from accounting building
-		else if ((tenantNames[i].tenantid)+"#ledger"==(id)){
-			$("#ledger").addClass("in active")
-			$("#tenant").removeClass("in active")
-			$("#tabtenant").removeClass("active")
-			$("#tabledger").addClass("active")
-			label = tenantNames[i].label;
-			var refnumber = tenantNames[i].refnumber;
-		}
-	}
-	//check tenant exist
-	if (label== null) {	
-		window.alert("Tenant doesn't exist");
-		window.location="tenant_main.html";
-	}
-	//fill name and refnumber
-	refnumber = refnumber.split("")
-	$("#tenant_name").html(label);
-	$("#tenant_id").html(refnumber[0]+refnumber[1]+refnumber[2]+" "+refnumber[3]+refnumber[4]+refnumber[5]+" "+refnumber[6]+refnumber[7]+refnumber[8]);
-	$("#afname").html(label);
-	$("#extendBuildNo").html(refnumber[1]+refnumber[2]);
-	$("#extendFloorNo").html(refnumber[3]+refnumber[4]);
-	$("#extendRoomNo").html(refnumber[5]+refnumber[6]);
+	});
+	
+	// nama tenant untuk validasi
+	var label= null;
+	
+	//fill name and refnumber from database
+	var tenantRef = firebase.database().ref().child("tenant/"+id);
+	tenantRef.once('value', function(snapshot) {
+		// get name,dll from database
+		var full_name=snapshot.child("full_name").val();
+		var birth_date=snapshot.child("birth_date").val();
+		var cont_home=snapshot.child("cont_home").val();
+		var cont_mobile=snapshot.child("cont_mobile").val();
+		var email=snapshot.child("full_name").val();
+		var id_number1=snapshot.child("id_number1").val();
+		var id_number2=snapshot.child("id_number2").val();
+		var id_photo1=snapshot.child("id_photo1").val();
+		var id_photo2=snapshot.child("id_photo2").val();
+		var id_type1=snapshot.child("id_type1").val();
+		var id_type2=snapshot.child("id_type2").val();
+		var kk_photo=snapshot.child("kk_photo").val();
+		var los_prev=snapshot.child("los_prev").val();
+		var occupation=snapshot.child("occupation").val();
+		var perm_addr=snapshot.child("perm_addr").val();
+		var prev_addr=snapshot.child("prev_addr").val();
+		var rfl_prev=snapshot.child("rfl_prev").val();
+		// get data ref 1
+		reftenantRef1=tenantRef.child("references/reference_1");
+		reftenantRef1.once('value', function(snapshot) {
+			var addressR1=snapshot.child("address").val();
+			var contactR1=snapshot.child("contact").val();
+			var full_nameR1=snapshot.child("full_name").val();
+			var relationR1=snapshot.child("relation").val();
+			// get data ref 2
+			reftenantRef2=tenantRef.child("references/reference_2");
+			reftenantRef2.once('value', function(snapshot) {
+				var addressR2=snapshot.child("address").val();
+				var contactR2=snapshot.child("contact").val();
+				var full_nameR2=snapshot.child("full_name").val();
+				var relationR2=snapshot.child("relation").val();
+				
+				
+				// check data pada list tenantname
+				for (i=0;i<(tenantNames.length);++i){
+					if (tenantNames[i].tenantid==id){
+						label = tenantNames[i].label;
+						var refnumber = tenantNames[i].refnumber;
+					}
+					//redirect from accounting building
+					else if ((tenantNames[i].tenantid)+"#ledger"==(id)){
+						$("#ledger").addClass("in active")
+						$("#tenant").removeClass("in active")
+						$("#tabtenant").removeClass("active")
+						$("#tabledger").addClass("active")
+						label = tenantNames[i].label;
+						var refnumber = tenantNames[i].refnumber;
+					}
+				}
+				//check tenant exist
+				if (label== null) {	
+					window.alert("Tenant doesn't exist");
+					window.location="tenant_main.html";
+				}
+				
+				
+				// fill data from firebase to html
+				refnumber = refnumber.split("")
+				$("#tenant_name").html(label);
+				$("#tenant_id").html(refnumber[0]+refnumber[1]+refnumber[2]+" "+refnumber[3]+refnumber[4]+refnumber[5]+" "+refnumber[6]+refnumber[7]+refnumber[8]);
+				$("#afname").html(label);
+				$("#extendBuildNo").html(refnumber[1]+refnumber[2]);
+				$("#extendFloorNo").html(refnumber[3]+refnumber[4]);
+				$("#extendRoomNo").html(refnumber[5]+refnumber[6]);
+				//jika data bukan dummy maka ini data dari firebase
+				if (full_name!=null){
+					$("#aphome").html(cont_home);
+					$("#apmobile").html(cont_mobile);
+					$("#aadstreet").html(perm_addr.split(", ")[0]);
+					$("#aadcity").html(perm_addr.split(", ")[1]);
+					$("#aadprov").html(perm_addr.split(", ")[2]);
+					$("#aadzip").html(perm_addr.split(", ")[2].split(" ")[1]);
+					$("#bdate").html(birth_date);
+					$("#idtype1").html(id_type1+" #"+id_number1);
+					$("#idtype2").html(id_type2+" #"+id_number2);
+					$("#occupy").html(occupation);
+					//reference 1
+					$("#r1fname").html(full_nameR1);
+					$("#r1rel").html(relationR1);
+					$("#r1adstreet").html(addressR1);
+					$("#r1p").html(contactR1);
+					//reference 2
+					$("#r2fname").html(full_nameR1);
+					$("#r2rel").html(relationR1);
+					$("#r2adstreet").html(addressR1);
+					$("#r2p").html(contactR1);
+				}
+			});
+		});
+	});
+	
 	//start jquery prettyphoto
 	$(".prettyphoto").prettyPhoto({
 		overlay_gallery: false, 
@@ -1266,8 +1360,9 @@ $(document).ready(function() {
 			extendTenant();
 		}
 	})
+
 	//fill bond money table with data
-	if (label== "Briana Holloway") {
+	if (id== "t_3d") {
 		ledgerList.push({
 			"date":"08/28/2018",
 			"desc":"Bond Money Due",
@@ -1444,5 +1539,5 @@ $(document).ready(function() {
 		$("#cover-spin").fadeOut(250, function() {
 			$(this).hide();
 		})
-	}, 2000);
+	}, 3000);
 });
