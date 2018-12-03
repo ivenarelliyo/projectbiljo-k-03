@@ -980,7 +980,7 @@ $(document).ready(function() {
 	
 	// mengambil data yang approved atau occupy dari firebase ke dalam list
 	var trRef1 = firebase.database().ref().child("tenant-room/"+id);
-	trRef1.on('child_added', function(snapshot) {
+	trRef1.on('value', function(snapshot) {
 		//get starting date , building address , status occupy , ref id
 		var statingDate=snapshot.child("start_date").val();
 		var propAddr=snapshot.child("prop_addr").val();

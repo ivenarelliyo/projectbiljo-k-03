@@ -129,7 +129,7 @@ function uploadDB() {
 			$("#loadingUpload").fadeOut(250, function() {
 				$(this).hide();
 			});
-			window.location="tenant_details.html?id="+tenantID;
+			window.location="tenant_main.html"
 		}
 	});
 	//upload to DB (tenant)

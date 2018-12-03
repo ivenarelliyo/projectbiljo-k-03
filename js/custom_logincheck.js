@@ -120,7 +120,7 @@ firebase.auth().onAuthStateChanged(function(user) {
 				trRef.on('child_added', function(snapshot) {
 					var tenantID = snapshot.key;
 					trRef1=trRef.child(snapshot.key);
-					trRef1.on('child_added', function(snapshot) {
+					trRef1.once('value', function(snapshot) {
 						//get starting date , building address , status occupy , ref id
 						var statingDate=snapshot.child("start_date").val();
 						var propAddr=snapshot.child("prop_addr").val();
@@ -156,8 +156,11 @@ firebase.auth().onAuthStateChanged(function(user) {
 							});
 						}
 					});
-					
-					trRef1.on('child_changed', function(snapshot) {
+				});
+				trRef.on('child_changed', function(snapshot) {
+					var tenantID = snapshot.key;
+					trRef1=trRef.child(snapshot.key);
+					trRef1.on('value', function(snapshot) {
 						//get starting date , building address , status occupy , ref id
 						var statingDate=snapshot.child("start_date").val();
 						var propAddr=snapshot.child("prop_addr").val();
@@ -232,8 +235,12 @@ firebase.auth().onAuthStateChanged(function(user) {
 							}
 						}
 					});
-					
-					trRef1.on('child_removed', function(snapshot) {
+				});
+				
+				trRef.on('child_removed', function(snapshot) {
+					var tenantID = snapshot.key;
+					trRef1=trRef.child(snapshot.key);
+					trRef1.once('value', function(snapshot) {
 						//get starting date , building address , status occupy , ref id
 						var statingDate=snapshot.child("start_date").val();
 						var propAddr=snapshot.child("prop_addr").val();

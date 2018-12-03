@@ -175,7 +175,7 @@ $(document).ready(function() {
 	trRef.on('child_added', function(snapshot) {
 		var tenantID = snapshot.key;
 		trRef1=trRef.child(snapshot.key);
-		trRef1.on('child_added', function(snapshot) {
+		trRef1.once('value', function(snapshot) {
 			//get starting date , building address , status occupy , ref id
 			var statingDate=snapshot.child("start_date").val();
 			var propAddr=snapshot.child("prop_addr").val();
@@ -220,8 +220,11 @@ $(document).ready(function() {
 				a++
 			});
 		});
-		
-		trRef1.on('child_changed', function(snapshot) {
+	});
+	trRef.on('child_changed', function(snapshot) {
+		var tenantID = snapshot.key;
+		trRef1=trRef.child(snapshot.key);
+		trRef1.once('value', function(snapshot) {
 			//get starting date , building address , status occupy, ref id
 			var statingDate=snapshot.child("start_date").val();
 			var propAddr=snapshot.child("prop_addr").val();
@@ -279,8 +282,11 @@ $(document).ready(function() {
 				
 			});
 		});
-		
-		trRef1.on('child_removed', function(snapshot) {
+	});
+	trRef.on('child_removed', function(snapshot) {
+		var tenantID = snapshot.key;
+		trRef1=trRef.child(snapshot.key);
+		trRef1.once('value', function(snapshot) {
 			//get ref ID
 			var refN=snapshot.child("ref_number").val().split(" ");
 			var refNumber=refN[0]+refN[1]+refN[2];
@@ -487,7 +493,7 @@ $(document).ready(function() {
 		//get building id
 		var buildingID=refNumber.substring(0,refNumber.length-2);
 		//update data booking to approved
-		var trRef = firebase.database().ref().child("tenant-room/"+tenantID+"/"+buildingID+"/");
+		var trRef = firebase.database().ref().child("tenant-room/"+tenantID+"/");
 		trRef.update({
 			'stat_occupy':'approved'
 		});
