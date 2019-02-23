@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<!-- Title here -->
-		<title>Input Room - GOKOST</title>
+		<title>Add Room - GOKOST</title>
 		<!-- Description, Keywords and Author -->
 		<meta name="description" content="Your description">
 		<meta name="keywords" content="Your,Keywords">
@@ -143,7 +143,7 @@
 							<!-- Heading -->
 							<div class="single-head">
 								<!-- Heading -->
-								<h3 class="pull-left"><i class="fa fa-clipboard black"></i> Input Room Form</h3>
+								<h3 class="pull-left"><i class="fa fa-clipboard black"></i> Add Room Form</h3>
 								<!-- Bread crumbs -->
 								<div class="breads pull-right">
 									<strong>Nav</strong> : <a href="home.html">GOKOST</a> / <a href="building_list.html">Building</a> / <a href="room_list.html">Room</a> / Add
@@ -172,6 +172,13 @@
 										<label for="roomno" class="control-label col-lg-2">Room</label>
 										<div class="col-lg-2">
 											<input id="roomno" name="roomno" class="form-control" type="number" min="1" max="99" readonly />
+											<input id="roomnovalid" name="roomnovalid" type="hidden" value="invalid">
+										</div>
+										<div class="col-lg-2">
+											<div class="checkbox">
+												<i id="roomtrue" class="fa fa-check-circle fa-lg" style="color:#42C557;display:none;"></i>
+												<i id="roomfalse" class="fa fa-times-circle fa-lg" style="color:#ED4747;display:none;"></i>
+											</div>
 										</div>
 									</div>
                                     <div class="row">
@@ -359,7 +366,7 @@
 									</div>
 									<div class="form-group">
 										<div class="col-lg-offset-2 col-lg-9">
-											<input id="fileButton" name="fileButton" type="file" accept=".jpg,.jpeg" style="display: none" />
+											<input id="fileButton" name="fileButton" type="file" accept=".jpg,.jpeg,.png" style="display: none" />
 											<input id="picCount" name="picCount" type="hidden" value="" />
 											<input id="maxPic" name="maxPic" type="hidden" value="0" />
 											<input id="thresholdCounter" name="tresholdCounter" type="hidden" value="0">
@@ -391,14 +398,14 @@
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x	</button>
-						<h4 class="modal-title">Warning</h4>
+						<h4 class="modal-title">Confirmation Dialog</h4>
 					</div>
 					<div class="modal-body">
 						<p>Are you sure you want to add this room?</p>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-hidden="true">Cancel</button>
-						<button id="confirmYes" type="button" class="btn btn-primary btn-sm" data-dismiss="modal" aria-hidden="true">Save changes</button>
+						<button id="confirmYes" type="button" class="btn btn-danger btn-sm" data-dismiss="modal" aria-hidden="true">Save changes</button>
 					</div>
 				</div>
 			</div>
@@ -447,7 +454,7 @@
         <script src="js/custom_room_add.js"></script>
 		<script>
 		$('#adatepicker').datepicker({
-			format: "dd-M-yy",
+			format: "d-M-yy",
 			autoclose: true
 		});
 		</script>
