@@ -106,14 +106,13 @@ function uploadDB() {
 	
 	//start loading icon
 	$("#cover-spin").fadeIn(250, function() {
-		$(this).removeClass("hide");
-	})
+		$(this).show();
+	});
 	lockForm();
-	
 	var tenantID;
 	//listen value to reach threshold
 	$("#thresholdCounter").change(function() {
-		if ($(this).val() == "5") { //wait until finish uploading
+		if ($(this).val() == "6") { //wait until finish uploading
 			//stop threshold listener
 			$("#thresholdCounter").off();
 			//success notification
@@ -129,7 +128,9 @@ function uploadDB() {
 			$("#loadingUpload").fadeOut(250, function() {
 				$(this).hide();
 			});
-			window.location="tenant_main.html"
+			setTimeout(function() {
+				window.location="tenant_main.html";
+			}, 1200);
 		}
 	});
 	//upload to DB (tenant)
@@ -160,6 +161,7 @@ function uploadDB() {
 			id_number2 : $("#idno2").val(),
 			id_photo2 : "empty",
 			kk_photo : "empty",
+			tn_photo : "empty",
 			perm_addr : $("#aadstreet").val()+", "+$("#aadcity").val()+", "+$("#aadprov").val()+" "+$("#aadzip").val(),
 			prev_addr : $("#paddress").val(),
 			los_prev : $("#rlosy").val()+","+$("#rlosm").val(),
@@ -249,7 +251,23 @@ function uploadDB() {
 			var task1 = storageRef1.put(photo1);
 			task1.on('state_changed',
 				function progress(snapshot) {
-						
+					var percentage = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
+				},
+				function error(err) {
+					//error notification
+					$.gritter.add({
+						title: 'Error Image 1',
+						text: err.code+" : "+err.message,
+						image: './img/bell.png',
+						sticky: false,
+						time: 3500,
+						class_name: 'gritter-custom'
+					})
+					unlockForm();
+					//stop loading icon
+					$("#cover-spin").fadeOut(250, function() {
+						$(this).hide();
+					})
 				},
 				function complete() {
 					dbRefTenant.child(tenantID).update({
@@ -273,22 +291,6 @@ function uploadDB() {
 							$(this).hide();
 						});
 					});
-				},
-				function error(err) {
-					//error notification
-					$.gritter.add({
-						title: 'Error Image 1',
-						text: err.code+" : "+err.message,
-						image: './img/bell.png',
-						sticky: false,
-						time: 3500,
-						class_name: 'gritter-custom'
-					})
-					unlockForm();
-					//stop loading icon
-					$("#cover-spin").fadeOut(250, function() {
-						$(this).hide();
-					})
 				}
 			)
 		} else {
@@ -303,7 +305,23 @@ function uploadDB() {
 			var task2 = storageRef2.put(photo2);
 			task2.on('state_changed',
 				function progress(snapshot) {
-					
+					var percentage = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
+				},
+				function error(err) {
+					//error notification
+					$.gritter.add({
+						title: 'Error Image 2',
+						text: err.code+" : "+err.message,
+						image: './img/bell.png',
+						sticky: false,
+						time: 3500,
+						class_name: 'gritter-custom'
+					})
+					unlockForm();
+					//stop loading icon
+					$("#cover-spin").fadeOut(250, function() {
+						$(this).hide();
+					})
 				},
 				function complete() {
 					dbRefTenant.child(tenantID).update({
@@ -327,22 +345,6 @@ function uploadDB() {
 							$(this).hide();
 						});
 					});
-				},
-				function error(err) {
-					//error notification
-					$.gritter.add({
-						title: 'Error Image 2',
-						text: err.code+" : "+err.message,
-						image: './img/bell.png',
-						sticky: false,
-						time: 3500,
-						class_name: 'gritter-custom'
-					})
-					unlockForm();
-					//stop loading icon
-					$("#cover-spin").fadeOut(250, function() {
-						$(this).hide();
-					})
 				}
 			)
 		} else {
@@ -357,7 +359,23 @@ function uploadDB() {
 			var task3 = storageRef3.put(photo3);
 			task3.on('state_changed',
 				function progress(snapshot) {
-					
+					var percentage = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
+				},
+				function error(err) {
+					//error notification
+					$.gritter.add({
+						title: 'Error Image 3',
+						text: err.code+" : "+err.message,
+						image: './img/bell.png',
+						sticky: false,
+						time: 3500,
+						class_name: 'gritter-custom'
+					})
+					unlockForm();
+					//stop loading icon
+					$("#cover-spin").fadeOut(250, function() {
+						$(this).hide();
+					})
 				},
 				function complete() {
 					dbRefTenant.child(tenantID).update({
@@ -381,11 +399,26 @@ function uploadDB() {
 							$(this).hide();
 						});
 					});
+				}
+			)
+		} else {
+			$("#thresholdCounter").val(parseInt($("#thresholdCounter").val())+1);
+			$("#thresholdCounter").trigger("change");
+		}
+		//upload tenant photo
+		if ($("#pready").attr("src") != "") {
+			var photo4 = $("#pready").attr("src");
+			var filename4 = "ID_4.jpg";
+			var storageRef4 = firebase.storage().ref("images/tenant/"+tenantID+"/"+filename4);
+			var task4 = storageRef4.putString(photo4,'data_url');
+			task4.on('state_changed',
+				function progress(snapshot) {
+					var percentage = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
 				},
 				function error(err) {
 					//error notification
 					$.gritter.add({
-						title: 'Error Image 3',
+						title: 'Error Image 4',
 						text: err.code+" : "+err.message,
 						image: './img/bell.png',
 						sticky: false,
@@ -397,6 +430,29 @@ function uploadDB() {
 					$("#cover-spin").fadeOut(250, function() {
 						$(this).hide();
 					})
+				},
+				function complete() {
+					dbRefTenant.child(tenantID).update({
+						tn_photo : filename4
+					}).then(function onSuccess(res) {
+						$("#thresholdCounter").val(parseInt($("#thresholdCounter").val())+1);
+						$("#thresholdCounter").trigger("change");
+					}).catch(function onError(err) {
+						//error notification
+						$.gritter.add({
+							title: 'Error Ref Image 4 DB',
+							text: err.code+" : "+err.message,
+							image: './img/bell.png',
+							sticky: false,
+							time: 3500,
+							class_name: 'gritter-custom'
+						});
+						unlockForm();
+						//stop loading icon
+						$("#cover-spin").fadeOut(250, function() {
+							$(this).hide();
+						});
+					});
 				}
 			)
 		} else {

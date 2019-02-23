@@ -166,6 +166,44 @@ function sortByStatOccupy(listApproveT){
 	return newArray
 }
 
+// send email
+function sendEmail(){
+	//start loading icon
+	$("#cover-spin").fadeIn(250, function() {
+		$(this).removeClass("hide");
+	})
+	// membaca target , subject , pesan
+	$('#send-button').addClass('disabled');
+	to = $('#compose-to').val();
+	subject = $('#compose-subject').val();
+	message = $('#compose-message').val();
+	
+	//set to firebase
+	var sendEmail = firebase.database().ref().child("sendEmail");
+	sendEmail.set({
+		'subject' : subject,
+		'to' : to,
+		'message' : message,
+	});
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', "https://sendemailgokost.herokuapp.com/webhook", true);
+	xhr.send();
+ 
+	xhr.onreadystatechange = processRequest;
+	 //kondisi ketika webhook selesai di buka
+	function processRequest(e) {
+		if (xhr.readyState == 4) {
+			//stop loading
+			$("#cover-spin").fadeOut(250, function() {
+				$(this).hide();
+			})
+			window.location.href='home.html';
+		}
+	}
+	return false;
+}
+
+
 $(document).ready(function() {
 	//BOOKING LIST
 	//get data from database

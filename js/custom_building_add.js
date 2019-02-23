@@ -251,7 +251,7 @@ function uploadDB() {
 			coord_longitude : $("#longitude").val(),
 			total_floor: $("#totflor").val(),
 			total_room: $("#totroom").html(),
-			room_count: room_counter,
+			room_count: room_counter.toString(),
 			photos: {
 				photo1 : "empty",
 				photo2 : "empty",
@@ -318,10 +318,11 @@ function uploadDB() {
 					var d = new Date();
 					var dbRefRoom = firebase.database().ref().child("property/"+buildType+"/"+"building_no:"+buildNo+"/"+"floor:"+floorNo+"/"+"ID:"+idRoom);
 					dbRefRoom.set({
-						availdate : "empty",
+						availdate : (parseInt(d.getMonth())+1)+"/"+d.getDate()+"/"+d.getFullYear(),
 						roomsize : "empty",
 						yearprice : "empty",
-						last_edited: (parseInt(d.getMonth())+1)+"/"+d.getDate()+"/"+d.getFullYear(),
+						last_edited : (parseInt(d.getMonth())+1)+"/"+d.getDate()+"/"+d.getFullYear(),
+						last_ref : "0",
 						photos : {
 							photo1 : "empty",
 							photo2 : "empty",
@@ -349,30 +350,6 @@ function uploadDB() {
 						//error notification
 						$.gritter.add({
 							title: 'Error Ref Room',
-							text: err.code+" : "+err.message,
-							image: './img/bell.png',
-							sticky: false,
-							time: 3500,
-							class_name: 'gritter-custom'
-						});
-						unlockForm();
-						//stop loading icon
-						$("#cover-spin").fadeOut(250, function() {
-							$(this).hide();
-						});
-					});
-					var dbRefSK = firebase.database().ref().child("codesystem/IDs:"+idRoom);
-					dbRefSK.set({
-						ID : idRoom+"00",
-						building_type : buildType,
-						building_no : buildNo,
-						floor_no : floorNo,
-						room_no : roomNo,
-						tenant_no : "00"
-					}).catch(function onError(err) {
-						//error notification
-						$.gritter.add({
-							title: 'Error Ref Room_Code',
 							text: err.code+" : "+err.message,
 							image: './img/bell.png',
 							sticky: false,
@@ -724,7 +701,7 @@ function uploadDB() {
 		//error notification
 		$.gritter.add({
 			title: 'Error',
-			text: 'Building number already in use.',
+			text: 'Building already exist.',
 			image: './img/bell.png',
 			sticky: false,
 			time: 3500,
@@ -1011,13 +988,13 @@ $(document).ready(function() {
 						})
 						setTimeout(function(){
 							window.location = "building_list.html";
-						}, 2000);
+						}, 1200);
 					}
 				});
 				for (i=1;i<=$("#totflor").val();i++) {
 					if ($("#floorPlanner_floor"+i+"_file").get(0).files.length !== 0) { //file selector not empty
 						var currFloorNo = i;
-						var filename_x2 = buildType2+buildNo+"_floor"+i+".jpg";
+						var filename_x2 = buildType2+buildNo+"_floor"+i+"."+getFileExtension($("#floorPlanner_floor"+i+"_file")[0].files[0].name);
 						for(j=1; j<=9; j++) {
 							if (currFloorNo == String(j)) {
 								currFloorNo = "0"+String(j);
@@ -1056,7 +1033,7 @@ $(document).ready(function() {
 				task_x.on('state_changed',
 					//progressbar animation
 					function progress(snapshot) {
-						
+						var percentage = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
 					},
 					function error(err) {
 						//error notification
