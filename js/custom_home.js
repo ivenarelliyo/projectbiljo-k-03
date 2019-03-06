@@ -25,6 +25,26 @@ function removeOptions(selectbox) {
 	
 }
 
+function get_fmoney(money) {
+	
+	var rev     = parseInt(money, 10).toString().split('').reverse().join('');
+	var rev2    = '';
+	for(var i = 0; i < rev.length; i++){
+		rev2  += rev[i];
+		if((i + 1) % 3 === 0 && i !== (rev.length - 1)){
+			rev2 += '.';
+		}
+	}
+	return ("Rp. "+rev2.split('').reverse().join('') + ',-')
+	
+}
+
+function rem_fmoney(money) {
+	
+	return parseInt(money.substring(4,money.length-2).split(".").join(""))
+	
+}
+
 function rem_moneydot(money) {
 	
 	return parseInt(money.split(".").join(""));
@@ -166,40 +186,77 @@ function sortByStatOccupy(listApproveT){
 	return newArray
 }
 
+function reformatDate(inputDate) {
+	
+	months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+	inputBroke=inputDate.split("/");
+	inputDay=parseInt(inputBroke[1]);
+	inputMonth=parseInt(inputBroke[0]);
+	inputYear=inputBroke[2];
+	outputDay=inputDay;
+	outputMonth=months[inputMonth-1];
+	outputYear=inputYear.split("")[2]+inputYear.split("")[3];
+	return (outputDay+"-"+outputMonth+"-"+outputYear);
+	
+}
+
+//menjumlahkan hari dengan tanggal yang diminta
+function sumDate(hari,date){
+	var intend = parseInt(hari);
+	//set date yang ditentukan
+	var someDate = new Date(date);
+	//menjumlahkan tanggal
+	someDate.setDate(someDate.getDate() + intend); 
+	newDate = String(someDate).split(" ")
+	var endMonth = newDate[1];
+	var endDay = newDate[2];
+	var endYear = newDate[3];
+
+	var endDate = endDay+"-"+endMonth+"-"+endYear;
+
+	return endDate;
+}
+
 // send email
-function sendEmail(){
+function sendEmail(tenantID,roomID,applyDate1,total,propAddr1){
 	//start loading icon
 	$("#cover-spin").fadeIn(250, function() {
 		$(this).removeClass("hide");
 	})
-	// membaca target , subject , pesan
-	$('#send-button').addClass('disabled');
-	to = $('#compose-to').val();
-	subject = $('#compose-subject').val();
-	message = $('#compose-message').val();
-	
-	//set to firebase
-	var sendEmail = firebase.database().ref().child("sendEmail");
-	sendEmail.set({
-		'subject' : subject,
-		'to' : to,
-		'message' : message,
-	});
-	var xhr = new XMLHttpRequest();
-	xhr.open('GET', "https://sendemailgokost.herokuapp.com/webhook", true);
-	xhr.send();
- 
-	xhr.onreadystatechange = processRequest;
-	 //kondisi ketika webhook selesai di buka
-	function processRequest(e) {
-		if (xhr.readyState == 4) {
-			//stop loading
-			$("#cover-spin").fadeOut(250, function() {
-				$(this).hide();
-			})
-			window.location.href='home.html';
+	//get tenant mail from firebase
+	var getEmail = firebase.database().ref().child("tenant/"+tenantID);
+	getEmail.once('value', function(snapshot) {
+		// membaca target , subject , pesan, no kamar
+		var to=snapshot.child("email").val();
+		var name=snapshot.child("full_name").val();
+		var noKamar = String(roomID.charAt(5))+String(roomID.charAt(6));
+		var idKamar = String(roomID.charAt(1))+String(roomID.charAt(2));
+		var subject = "Summary Payment NSP"
+		var message = "Salam "+name+"\n\nPihak NSP sudah menyetujui permohonan kamu untuk masuk kamar "+noKamar+" di gedung "+idKamar+" yang beralamat di "+propAddr1+"\n\nKamu perlu membayar Bond Money dan Rental Money sebesar "+get_fmoney(total)+" ke No. Rek dibawah ini: \n\nNo. Rek : 323232323\n\nAtas Nama : Monica\n\nPaling lambat "+sumDate(7,applyDate1)+". Jika sudah transfer , harap menghubungi no WA 08xxxxx"
+
+		//set to firebase
+		var sendEmail = firebase.database().ref().child("sendEmail");
+		sendEmail.set({
+			'subject' : subject,
+			'to' : to,
+			'message' : message,
+		});
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', "https://sendemailgokost.herokuapp.com/webhook", true);
+		xhr.send();
+	 
+		xhr.onreadystatechange = processRequest;
+		 //kondisi ketika webhook selesai di buka
+		function processRequest(e) {
+			if (xhr.readyState == 4) {
+				//stop loading
+				$("#cover-spin").fadeOut(250, function() {
+					$(this).hide();
+				})
+				window.location.href='home.html';
+			}
 		}
-	}
+	});
 	return false;
 }
 
@@ -207,13 +264,12 @@ function sendEmail(){
 $(document).ready(function() {
 	//BOOKING LIST
 	//get data from database
-	var trRef = firebase.database().ref().child("tenant-room");
+	var trRef = firebase.database().ref("tenant-room");
 	var a=1;
 	var listApproveT=[];
 	trRef.on('child_added', function(snapshot) {
 		var tenantID = snapshot.key;
-		trRef1=trRef.child(snapshot.key);
-		trRef1.once('value', function(snapshot) {
+		trRef.child(tenantID).on('child_added', function(snapshot) {
 			//get starting date , building address , status occupy , ref id
 			var statingDate=snapshot.child("start_date").val();
 			var propAddr=snapshot.child("prop_addr").val();
@@ -233,7 +289,7 @@ $(document).ready(function() {
 					newObj = {
 						"statOccupy":"approved",
 						"refNum":refNumber,
-						"content":[a,tenantName,statingDate,propAddr,"<button id='approve_booking"+refNumber+"' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking"+refNumber+"') style='background-color:#c8bca6' disabled ><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking"+refNumber+"')><i class='fa fa-times'></i></button>"],
+						"content":[a,"<a href='tenant_approve.html?id="+refNumber+"'>"+tenantName+"</a>",statingDate,propAddr,"<button id='approve_booking"+refNumber+"' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking"+refNumber+"') style='background-color:#c8bca6' disabled ><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking"+refNumber+"')><i class='fa fa-times'></i></button>"],
 						"tenant_id":tenantID
 					}
 					listApproveT.push(newObj);
@@ -244,7 +300,7 @@ $(document).ready(function() {
 					newObj = {
 						"statOccupy":"booking",
 						"refNum":refNumber,
-						"content":[a,tenantName,statingDate,propAddr,"<button id='approve_booking"+refNumber+"' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking"+refNumber+"')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking"+refNumber+"')><i class='fa fa-times'></i></button>"],
+						"content":[a,"<a href='tenant_approve.html?id="+refNumber+"'>"+tenantName+"</a>",statingDate,propAddr,"<button id='approve_booking"+refNumber+"' class='btn btn-xs btn-success' title='Approve' onclick=approveBooking('booking"+refNumber+"')><i class='fa fa-check'></i></button> <button id='removebutt' class='btn btn-xs btn-danger' title='Delete' onclick=deleteBooking('booking"+refNumber+"')><i class='fa fa-times'></i></button>"],
 						"tenant_id":tenantID
 					}
 					listApproveT.push(newObj);
@@ -258,11 +314,7 @@ $(document).ready(function() {
 				a++
 			});
 		});
-	});
-	trRef.on('child_changed', function(snapshot) {
-		var tenantID = snapshot.key;
-		trRef1=trRef.child(snapshot.key);
-		trRef1.once('value', function(snapshot) {
+		trRef.child(tenantID).on('child_changed', function(snapshot) {
 			//get starting date , building address , status occupy, ref id
 			var statingDate=snapshot.child("start_date").val();
 			var propAddr=snapshot.child("prop_addr").val();
@@ -320,11 +372,7 @@ $(document).ready(function() {
 				
 			});
 		});
-	});
-	trRef.on('child_removed', function(snapshot) {
-		var tenantID = snapshot.key;
-		trRef1=trRef.child(snapshot.key);
-		trRef1.once('value', function(snapshot) {
+		trRef.child(tenantID).on('child_removed', function(snapshot) {
 			//get ref ID
 			var refN=snapshot.child("ref_number").val().split(" ");
 			var refNumber=refN[0]+refN[1]+refN[2];
@@ -332,11 +380,7 @@ $(document).ready(function() {
 			var row = table1.row('#booking'+refNumber);
 			row.remove();
 		});
-	})
-
-	
-	
-	
+	});
 	
 	//key list
 	var table6 = $('#keyC-list').DataTable({
@@ -528,13 +572,23 @@ $(document).ready(function() {
 				break
 			}
 		}
-		//get building id
-		var buildingID=refNumber.substring(0,refNumber.length-2);
+		//get room id
+		var roomID=refNumber.substring(0,refNumber.length-2);
 		//update data booking to approved
-		var trRef = firebase.database().ref().child("tenant-room/"+tenantID+"/");
+		var trRef = firebase.database().ref("tenant-room/"+tenantID+"/"+roomID);
 		trRef.update({
 			'stat_occupy':'approved'
 		});
+		//mengambil apply date, rent price , prop_addr
+		trRef.once('value', function(snapshot) {
+			var applyDate1=snapshot.child("apply_date").val();
+			var rent_price1=snapshot.child("rent_price").val();
+			var rent_bond1=snapshot.child("rent_bond").val();
+			var total = parseInt(rent_price1)+parseInt(rent_bond1);
+			var propAddr1=snapshot.child("prop_addr").val();
+			// send email
+			sendEmail(tenantID,roomID,applyDate1,total,propAddr1);
+		})
 	})
 	
 	//remove approve modal add listener

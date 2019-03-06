@@ -20,6 +20,12 @@ function get_fmoney(money) {
 	
 }
 
+function rem_fmoney(money) {
+	
+	return parseInt(money.substring(4,money.length-2).split(".").join(""))
+	
+}
+
 function pembulatan(input) {
 	
 	return (Math.round((parseInt(input)/100)))*100;
@@ -129,7 +135,7 @@ function uploadDB() {
 				$(this).hide();
 			});
 			setTimeout(function() {
-				window.location="tenant_main.html";
+				window.location="home.html";
 			}, 1200);
 		}
 	});
@@ -209,7 +215,7 @@ function uploadDB() {
 			build_no : $("#propnumb").html().substring(10,12),
 			prop_addr : $("#propaddr_st").html()+", "+$("#propaddr_ct").html()+" "+$("#propaddr_pv").html()+" "+$("#propaddr_zp").html(),
 			apply_date : (parseInt(d.getMonth())+1)+"/"+d.getDate()+"/"+d.getFullYear(),
-			start_date : $("#edate").val(),
+			start_date : reformatDate2($("#edate").val()),
 			ctrt_opt : $("#ctoption").val(),
 			pay_plan : $("#payplan").val(),
 			adjst_pay : $("#payadjt").val(),
@@ -223,7 +229,9 @@ function uploadDB() {
 			},
 			stat_occupy : "booking",
 			stat_chrg_f : "0",
-			stat_chrg_n : "0"
+			stat_chrg_n : "0",
+			rent_price	: rem_fmoney($("#fprice").html()),
+			rent_bond	: rem_fmoney($("#fbond").html())
 		}).then(function onSuccess(res) {
 			$("#thresholdCounter").val(parseInt($("#thresholdCounter").val())+1);
 			$("#thresholdCounter").trigger("change");
@@ -707,6 +715,7 @@ $(document).ready(function() {
 						if (availDate != "empty") {
 							$("#adate").html(reformatDate(snapshot.child("availdate").val()));
 							$("#yearp").val(snapshot.child("yearprice").val());
+							$("#myRoomID").val(id[1]);
 							//stop loading icon
 							$("#cover-spin").fadeOut(250, function() {
 								$(this).hide();
