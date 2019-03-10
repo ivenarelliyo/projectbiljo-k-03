@@ -945,10 +945,9 @@ $(document).ready(function() {
 				}
 			}
 			var floorno = data[0];
-			var roomno = data[1];
-			var id = "1"+buildno+floorno+roomno;
+			var roomID = data[1].split("id='")[1].split("'")[0];
 			var roundPrice = (Math.round((parseInt(prompter)/100)))*100;
-			var dbRef = firebase.database().ref().child("property/residential/building_no:"+buildno+"/floor:"+floorno+"/ID:"+id);
+			var dbRef = firebase.database().ref().child("property/residential/building_no:"+buildno+"/floor:"+floorno+"/ID:"+roomID);
 			//update price to database
 			dbRef.update({
 				yearprice : roundPrice
